@@ -69,10 +69,10 @@ int main(int argc, char ** argv) {
 		exit(1);
 	}
 
-//	printf("Number of cases: %d\n", countCas);
-//	printf("Number of controls: %d\n", countCon);
-//	printf("X Range: %lf - %lf\n", xMin, xMax);
-//	printf("Y Range: %lf - %lf\n", yMin, yMax);
+	printf("Number of cases: %d\n", countCas);
+	printf("Number of controls: %d\n", countCon);
+	printf("X Range: %lf - %lf\n", xMin, xMax);
+	printf("Y Range: %lf - %lf\n", yMin, yMax);
 
 	readPoints(inputCas, xCas, yCas);
 	readPoints(inputCon, xCon, yCon);
@@ -98,18 +98,24 @@ int main(int argc, char ** argv) {
 	double p = baseLineRatio * countCas / (countCas + countCon); 
 
 	int * clusters = doClusterBer(xCas, yCas, indexCas, xCon, yCon, indexCon, nBlockX, nBlockY, radius, xMin, yMin, countPointsCas, countPointsCon, p, significance, minCore, nonCorePoints);
+	//Output 
+	if(NULL == (output = fopen(argv[3], "w"))) {
+		printf("ERROR: Can't open the output file.\n");
+		exit(1);
+	}
 
-	for(int i = 0; i < countCas; i++)
-	{
-		printf("%lf,%lf,1,%d\n", xCas[i], yCas[i], clusters[i]);
+	for(int i = 0; i < countCas; i++) {
+		fprintf(output, "%lf,%lf,1,%d\n", xCas[i], yCas[i], clusters[i]);
 	}
 
 	if(nonCorePoints) {
 		for(int i = 0; i < countCon; i++)
 		{
-			printf("%lf,%lf,0,%d\n", xCon[i], yCon[i], clusters[countCas + i]);
+			fprintf(output, "%lf,%lf,0,%d\n", xCon[i], yCon[i], clusters[countCas + i]);
 		}
 	}
+
+	fclose(output);
 
 
 	free(xCas);

@@ -16,6 +16,7 @@ int main(int argc, char ** argv) {
 	double xMin = 999999999, yMin = 999999999, xMax = -999999999, yMax = -999999999;
 	
 	FILE * input;
+	FILE * output;
 
 	double radius = atof(argv[3]);
 	int minPts = atoi(argv[4]);
@@ -48,6 +49,8 @@ int main(int argc, char ** argv) {
 	}
 
 	readPoints(input, x, y);
+
+	fclose(input);
 	
 	int nBlockX = ceil((xMax - xMin) / radius);
 	int nBlockY = ceil((yMax - yMin) / radius);
@@ -60,15 +63,21 @@ int main(int argc, char ** argv) {
 
 	int * clusters = doClusterDBSCAN(x, y, index, nBlockX, nBlockY, radius, minPts, xMin, yMin, countPoints, minCore, nonCorePoints);
 	
+	//Output 
+	if(NULL == (output = fopen(argv[2], "w"))) {
+		printf("ERROR: Can't open the output file.\n");
+		exit(1);
+	}
+	
 	for(int i = 0; i < count; i++)
 	{
-		printf("%lf,%lf,%d\n", x[i], y[i], clusters[i]);
+		fprintf(output, "%lf,%lf,%d\n", x[i], y[i], clusters[i]);
 	}
 
+	fclose(output);
 
 	free(clusters);
 
-	fclose(input);
 
 
 	free(x);

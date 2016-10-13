@@ -117,12 +117,18 @@ int main(int argc, char ** argv) {
 
 
 	int * clusters =  doClusterPoi(xE, yE, indexE, nBlockX, nBlockY, radius, xMin, yMin, countPointsE, lambda, significance, minCore, nonCorePoints);
-
-	for(int i = 0; i < countE; i++)
-	{
-		printf("%lf,%lf,%d\n", xE[i], yE[i], clusters[i]);
+	//Output 
+	if(NULL == (output = fopen(argv[3], "w"))) {
+		printf("ERROR: Can't open the output file.\n");
+		exit(1);
 	}
 
+
+	for(int i = 0; i < countE; i++) {
+		fprintf(output, "%lf,%lf,%d\n", xE[i], yE[i], clusters[i]);
+	}
+
+	fclose(output);
 
 	free(countPointsE);
 	free(xE);
