@@ -60,6 +60,9 @@ double BinomialTest(int nCas, int nCon, double p)
  * 	double * x: 		the array of event points' X values
  * 	double * y: 		the array of event points' Y values
  * 	int * index:		the index of all event points
+ * 	double * xB: 		the array of background points' X values
+ * 	double * yB: 		the array of background points' Y values
+ * 	int * indexB:		the index of all background points
  * 	int nBlockX:		the number of index blocks along X dimension
  * 	int nBlockY:		the number of index blocks along Y dimension
  *	double radius:		the search radius, which is also the block size
@@ -74,9 +77,10 @@ double BinomialTest(int nCas, int nCon, double p)
  * 	TYPE:	int *
  * 	VALUE:	the cluster ID of each event point
  */
-int * doClusterPoi(double * x, double * y, int * index, int nBlockX, int nBlockY, double radius, double xMin, double yMin, int * eC, double * lambda, double significance, int minCore, bool nonCorePoints)
+int * doClusterPoi(double * x, double * y, int * index, double * xB, double * yB, int * indexB, int nBlockX, int nBlockY, double radius, double xMin, double yMin, int * eC, double * lambda, double significance, int minCore, bool nonCorePoints)
 {
 	int count = index[nBlockX * nBlockY];
+	int countB = indexB[nBlockX * nBlockY];
 
 	int * clusterID;
 	if(NULL == (clusterID = (int *)malloc(sizeof(int) * count)))
@@ -102,6 +106,28 @@ int * doClusterPoi(double * x, double * y, int * index, int nBlockX, int nBlockY
 	int nPToDo = 0;
 	int cID = 0;
 
+	int * inClusterE;
+	int * inClusterB;
+
+	if(NULL == (inClusterE = (int *)malloc(sizeof(int) * count))) {
+		printf("ERROR: Out of memory at line %d in file %s\n", __LINE__, __FILE__);
+		exit(1);
+	}
+	
+	if(NULL == (inClusterB = (int *)malloc(sizeof(int) * countB))) {
+		printf("ERROR: Out of memory at line %d in file %s\n", __LINE__, __FILE__);
+		exit(1);
+	}
+	
+	for(int i = 0; i < count; i++) {
+		inClusterE[i] = -1;
+	}
+
+	for(int i = 0; i < countB; i++) {
+		inClusterB[i] = -1;
+	}
+
+
 	double dist2 = radius * radius;
 
 	double cX, cY;
@@ -113,6 +139,10 @@ int * doClusterPoi(double * x, double * y, int * index, int nBlockX, int nBlockY
 
 	int coreCount;
 
+	int nEInCluster;
+	int nBInCluster;
+	printf("ClusterID,Events,expEvents,LL\n");
+
 	for(int i = 0; i < count; i++)
 	{
 		if(clusterID[i] != 0)
@@ -122,7 +152,11 @@ int * doClusterPoi(double * x, double * y, int * index, int nBlockX, int nBlockY
 		cID ++;
 		clusterID[i] = cID;
 		
-		coreCount = 1;	
+		coreCount = 1;
+
+		inClusterE[i] = cID;
+		nEInCluster = 1;
+		nBInCluster = 0;
 
 		while(nPToDo > 0) {
 			nPToDo --;
@@ -141,20 +175,32 @@ int * doClusterPoi(double * x, double * y, int * index, int nBlockX, int nBlockY
 			{
 				for(iNb = index[row * nBlockX + colMin]; iNb < index[row * nBlockX + colMax + 1]; iNb ++)
 				{
-					if(clusterID[iNb] < 1)
-					{
-						if(dist2 >= ((x[iNb] - cX) * (x[iNb] - cX) + (y[iNb] - cY) * (y[iNb] - cY)))
-						{
-							if(clusterID[iNb] != -1)
-							{
+					if(inClusterE[iNb] != cID) {
+						if(dist2 >= ((x[iNb] - cX) * (x[iNb] - cX) + (y[iNb] - cY) * (y[iNb] - cY))) {
+							if(clusterID[iNb] == 0) {
 								pointsToDo[nPToDo] = iNb;
 								nPToDo ++;
 								coreCount ++;
 								clusterID[iNb] = cID;
 							}
-							else if(nonCorePoints)
+							else if(clusterID[iNb] == -1 && nonCorePoints) {
 								clusterID[iNb] = cID;
+							}
+
+							inClusterE[iNb] = cID;
+							nEInCluster ++;
 						}
+					}
+
+				}
+
+				for(iNb = indexB[row * nBlockX + colMin]; iNb < indexB[row * nBlockX + colMax + 1]; iNb ++) {
+					if(inClusterB[iNb] != cID) {
+						if(dist2 >= ((xB[iNb] - cX) * (xB[iNb] - cX) + (yB[iNb] - cY) * (yB[iNb] - cY))) {
+							inClusterB[iNb] = cID;
+							nBInCluster ++;
+						}
+
 					}
 				}
 			}
@@ -170,8 +216,18 @@ int * doClusterPoi(double * x, double * y, int * index, int nBlockX, int nBlockY
 			}
 			cID --;
 		}
-		
+		else {
+			double expEventInCluster = (double)(nBInCluster) / countB * count;
+			double LL = nEInCluster * log(nEInCluster/expEventInCluster);
+			if(nEInCluster < count) {
+				LL += (count - nEInCluster) * log((count - nEInCluster) / (count - expEventInCluster));
+			}
+			printf("%d,%d,%lf,%lf\n", cID, nEInCluster, expEventInCluster, LL);
+		}
 	}
+
+	free(inClusterE);
+	free(inClusterB);
 
 	free(pointsToDo);
 	return clusterID; 
@@ -232,7 +288,6 @@ int * doClusterBer(double * xCas, double * yCas, int * indexCas, double * xCon, 
 	int nPToDo = 0;
 	int cID = 0;
 
-//LL Start
 	int * inClusterCas;
 	int * inClusterCon;
 
@@ -254,7 +309,6 @@ int * doClusterBer(double * xCas, double * yCas, int * indexCas, double * xCon, 
 		inClusterCon[i] = -1;
 	}
 
-//LL End
 
 	double dist2 = radius * radius;
 
@@ -266,11 +320,9 @@ int * doClusterBer(double * xCas, double * yCas, int * indexCas, double * xCon, 
 
 	int coreCount;
 
-//LL Start
 	int nCasInCluster;
 	int nConInCluster;
 	printf("ClusterID,nCas,nCon,LL\n");
-//LL End
 
 	for(int i = 0; i < countCas; i++)
 	{
@@ -283,11 +335,9 @@ int * doClusterBer(double * xCas, double * yCas, int * indexCas, double * xCon, 
 		
 		coreCount = 1;
 
-//LL Start
 		inClusterCas[i] = cID;
 		nCasInCluster = 1;
 		nConInCluster = 0;
-//LL End
 
 		while(nPToDo > 0) {
 			nPToDo --;
@@ -306,22 +356,6 @@ int * doClusterBer(double * xCas, double * yCas, int * indexCas, double * xCon, 
 			{
 				for(iNb = indexCas[row * nBlockX + colMin]; iNb < indexCas[row * nBlockX + colMax + 1]; iNb ++)
 				{
-/*					if(clusterID[iNb] < 1)
-					{
-						if(dist2 >= ((xCas[iNb] - cX) * (xCas[iNb] - cX) + (yCas[iNb] - cY) * (yCas[iNb] - cY)))
-						{
-							if(clusterID[iNb] != -1)
-							{
-								pointsToDo[nPToDo] = iNb;
-								nPToDo ++;
-								coreCount ++;
-								clusterID[iNb] = cID;
-							}
-							else if(nonCorePoints)
-								clusterID[iNb] = cID;
-						}
-					} */
-//LL Start
 					if(inClusterCas[iNb] != cID) {
 						if(dist2 >= ((xCas[iNb] - cX) * (xCas[iNb] - cX) + (yCas[iNb] - cY) * (yCas[iNb] - cY))) {
 							if(clusterID[iNb] == 0) {
@@ -339,24 +373,8 @@ int * doClusterBer(double * xCas, double * yCas, int * indexCas, double * xCon, 
 							
 						}
 					}
-
-//LL End
-
 				}
 
-/*				if(nonCorePoints) {
-					for(iNb = indexCon[row * nBlockX + colMin]; iNb < indexCon[row * nBlockX + colMax + 1]; iNb ++)
-					{
-						if(clusterID[countCas + iNb] < 1)
-						{
-							if(dist2 >= ((xCon[iNb] - cX) * (xCon[iNb] - cX) + (yCon[iNb] - cY) * (yCon[iNb] - cY)))
-							{
-								clusterID[countCas + iNb] = cID;
-							}
-						}
-					}
-				}*/
-//LL Start
 				for(iNb = indexCon[row * nBlockX + colMin]; iNb < indexCon[row * nBlockX + colMax + 1]; iNb ++) {
 					if(inClusterCon[iNb] != cID) {
 						if(dist2 >= ((xCon[iNb] - cX) * (xCon[iNb] - cX) + (yCon[iNb] - cY) * (yCon[iNb] - cY))) {
@@ -369,7 +387,6 @@ int * doClusterBer(double * xCas, double * yCas, int * indexCas, double * xCon, 
 						}
 					}
 				}
-//LL End
 			}
 		
 		}
@@ -383,23 +400,21 @@ int * doClusterBer(double * xCas, double * yCas, int * indexCas, double * xCon, 
 			}
 			cID --;
 		}
-
-//LL Start
-		int total = countCas + countCon;
-		int totalInC = nCasInCluster + nConInCluster;
-		double LL = nCasInCluster * log(nCasInCluster/totalInC);
-		if(nConInCluster > 0) {
-			LL += nConInCluster * log(nConInCluster/totalInC);
+		else {
+			double total = countCas + countCon;
+			double totalInC = nCasInCluster + nConInCluster;
+			double LL = nCasInCluster * log(nCasInCluster/totalInC);
+			if(nConInCluster > 0) {
+				LL += nConInCluster * log(nConInCluster/totalInC);
+			}
+			if(countCas > nCasInCluster) {
+				LL += (countCas - nCasInCluster) * log((countCas - nCasInCluster)/(total-totalInC));
+			}
+			if(countCon > nConInCluster) {
+				LL += (countCon - nConInCluster) * log((countCon - nConInCluster)/(total-totalInC));
+			}
+			printf("%d,%d,%d,%lf\n", cID, nCasInCluster, nConInCluster, LL);
 		}
-		if(countCas > nCasInCluster) {
-			LL += (countCas - nCasInCluster) * log((countCas - nCasInCluster)/(total-totalInC));
-		}
-		if(countCon > nConInCluster) {
-			LL += (countCon - nConInCluster) * log((countCon - nConInCluster)/(total-totalInC));
-		}
-		printf("%d,%d,%d,%lf\n", cID, nCasInCluster, nConInCluster, LL);
-//LL End
-		
 	}
 
 	for(int j = countCas; j < (countCas + countCon); j++)
@@ -409,10 +424,8 @@ int * doClusterBer(double * xCas, double * yCas, int * indexCas, double * xCon, 
 	}
 
 	free(pointsToDo);
-//LL Start
 	free(inClusterCas);
 	free(inClusterCon);
-//LL End
 
 	return clusterID; 
 }
@@ -533,7 +546,6 @@ int * doClusterDBSCAN(double * x, double * y, int * index, int nBlockX, int nBlo
 			}
 			cID --;
 		}
-		
 	}
 
 

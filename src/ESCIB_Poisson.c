@@ -96,10 +96,6 @@ int main(int argc, char ** argv) {
 	int * countPointsE = countInDistance_Single(xE, yE, indexE, nBlockX, nBlockY, radius);
 	int * countPointsB = countInDistance_Double(xE, yE, xB, yB, indexE, indexB, nBlockX, nBlockY, radius);
 
-	free(xB);
-	free(yB);
-	free(indexB);
-
 	double * lambda;
 	if(NULL == (lambda = (double *)malloc(sizeof(double) * countE)))
 	{
@@ -116,7 +112,12 @@ int main(int argc, char ** argv) {
 	free(countPointsB);
 
 
-	int * clusters =  doClusterPoi(xE, yE, indexE, nBlockX, nBlockY, radius, xMin, yMin, countPointsE, lambda, significance, minCore, nonCorePoints);
+	int * clusters =  doClusterPoi(xE, yE, indexE, xB, yB, indexB, nBlockX, nBlockY, radius, xMin, yMin, countPointsE, lambda, significance, minCore, nonCorePoints);
+	
+	free(xB);
+	free(yB);
+	free(indexB);
+
 	//Output 
 	if(NULL == (output = fopen(argv[3], "w"))) {
 		printf("ERROR: Can't open the output file.\n");
