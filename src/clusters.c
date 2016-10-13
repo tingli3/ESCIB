@@ -269,6 +269,7 @@ int * doClusterBer(double * xCas, double * yCas, int * indexCas, double * xCon, 
 //LL Start
 	int nCasInCluster;
 	int nConInCluster;
+	printf("ClusterID,nCas,nCon,LL\n");
 //LL End
 
 	for(int i = 0; i < countCas; i++)
@@ -383,7 +384,21 @@ int * doClusterBer(double * xCas, double * yCas, int * indexCas, double * xCon, 
 			cID --;
 		}
 
-		printf("%d,%d,%d\n", cID, nCasInCluster, nConInCluster);
+//LL Start
+		int total = countCas + countCon;
+		int totalInC = nCasInCluster + nConInCluster;
+		double LL = nCasInCluster * log(nCasInCluster/totalInC);
+		if(nConInCluster > 0) {
+			LL += nConInCluster * log(nConInCluster/totalInC);
+		}
+		if(countCas > nCasInCluster) {
+			LL += (countCas - nCasInCluster) * log((countCas - nCasInCluster)/(total-totalInC));
+		}
+		if(countCon > nConInCluster) {
+			LL += (countCon - nConInCluster) * log((countCon - nConInCluster)/(total-totalInC));
+		}
+		printf("%d,%d,%d,%lf\n", cID, nCasInCluster, nConInCluster, LL);
+//LL End
 		
 	}
 
