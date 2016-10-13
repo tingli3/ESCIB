@@ -69,11 +69,11 @@ int main(int argc, char ** argv) {
 		exit(1);
 	}
 
-//	printf("Number of background points: %d\n", countB);
-//	printf("Number of event points: %d\n", countE);
-//	printf("X Range: %lf - %lf\n", xMin, xMax);
-//	printf("Y Range: %lf - %lf\n", yMin, yMax);
-//	printf("Search radius %lf\n", radius);
+	printf("Number of background points: %d\n", countB);
+	printf("Number of event points: %d\n", countE);
+	printf("X Range: %lf - %lf\n", xMin, xMax);
+	printf("Y Range: %lf - %lf\n", yMin, yMax);
+	printf("Search radius %lf\n", radius);
 
 	readPoints(inputB, xB, yB);
 	readPoints(inputE, xE, yE);

@@ -18,10 +18,9 @@ int getCount(FILE * file, double &xMin, double &xMax, double &yMin, double &yMax
 {
 	int count = 0;
 	double x, y;
-	int t;
 	rewind(file);
 	
-	while(fscanf(file, "%lf,%lf,%d\n", &x, &y, &t) != EOF) {
+	while(fscanf(file, "%lf,%lf\n", &x, &y) != EOF) {
 		count ++;
 		if(x < xMin)
 			xMin = x;
@@ -48,11 +47,10 @@ int getCount(FILE * file, double &xMin, double &xMax, double &yMin, double &yMax
  */
 void readPoints(FILE * file, double * x, double * y)
 {
-	int t;
         rewind(file);
 	int count = 0;
 
-	while(fscanf(file, "%lf,%lf,%d\n", x + count, y + count, &t) != EOF) {
+	while(fscanf(file, "%lf,%lf\n", x + count, y + count) != EOF) {
 		count ++;
 	}
 }
