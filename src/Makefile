@@ -8,12 +8,12 @@ HDRS    := $(TARGETS:=.h)
 
 
 
-all: ESCIB_Bernuolli ESCIB_Poisson DBSCAN
+all: ESCIB_Bernoulli ESCIB_Poisson DBSCAN
 
 $(OBJS): %.o: %.c %.h
 	$(GCC) -o $@ -c $<
 
-ESCIB_Bernuolli.o: ESCIB_Bernuolli.c
+ESCIB_Bernoulli.o: ESCIB_Bernoulli.c
 	$(GCC) -o $@ -c $<
 
 ESCIB_Poisson.o: ESCIB_Poisson.c
@@ -22,7 +22,7 @@ ESCIB_Poisson.o: ESCIB_Poisson.c
 DBSCAN.o: DBSCAN.c
 	$(GCC) -o $@ -c $<
 
-ESCIB_Bernuolli: ESCIB_Bernuolli.o $(OBJS)
+ESCIB_Bernoulli: ESCIB_Bernoulli.o $(OBJS)
 	$(GCC) -o ../$@ $+
 
 ESCIB_Poisson: ESCIB_Poisson.o $(OBJS)
@@ -32,4 +32,4 @@ DBSCAN: DBSCAN.o $(OBJS)
 	$(GCC) -o ../$@ $+
 
 clean: 
-	rm -f ../ESCIB_Bernuolli ../ESCIB_Poisson ../DBSCAN *.o 
+	rm -f ../ESCIB_Bernoulli ../ESCIB_Poisson ../DBSCAN *.o 

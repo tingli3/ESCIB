@@ -9,7 +9,7 @@ int main(int argc, char ** argv) {
 
 	if(argc != 9) {
 		printf("ERROR! Incorrect number of input arguments\n");
-		printf("ESCIB_Bernuolli inputCase inputControl output searchRadius significance(alpha) baselineRatio minCorPointsInEachCluster nonCorePoints\n");
+		printf("ESCIB_Bernoulli inputCase inputControl output searchRadius significance(alpha) baselineRatio minCorPointsInEachCluster nonCorePoints\n");
 		return 1;
 	}
 

@@ -1,10 +1,10 @@
 # ESCIB
 **E**xpansion-based **S**patial **C**lustering over **I**nhomogeneous **B**ackground
 
-## ESCIB_Bernuolli
-ESCIB with a Bernuolli model, used for case-control study
+## ESCIB_Bernoulli
+ESCIB with a Bernoulli model, used for case-control study
 ### To execute:
-  ESCIB_Bernuolli inputCase inputControl output searchRadius significance(alpha) baselineRatio minCorPointsInEachCluster nonCorePoints
+  ESCIB_Bernoulli inputCase inputControl output searchRadius significance(alpha) baselineRatio minCorPointsInEachCluster nonCorePoints
 ### Arguments:
 1. inputCase: input file of case points, a csv without header with two columns: x and y
 2. inputControl: input file of control points, a csv without header with two columns: x and y
